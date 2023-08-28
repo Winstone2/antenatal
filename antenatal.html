@@ -1,0 +1,81 @@
+
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport"
+        content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Document</title>
+</head>
+<body>
+<h1>Antenatal Care Visit Predictor</h1>
+
+<div>
+  <label for="age">Age:</label>
+  <input type="number" id="age" min="15" max="45">
+</div>
+
+<div>
+  <label for="weight">Weight (kg):</label>
+  <input type="number" id="weight" min="30" max="200">
+</div>
+
+<div>
+  <label for="previousVisits">Previous Visits:</label>
+  <input type="number" id="previousVisits" min="0" max="15">
+</div>
+
+<button onclick="predictAntenatalVisits()">Predict</button>
+
+<p>Predicted Antenatal Care Visits: <span id="prediction"></span></p>
+
+<script>
+  // Define a simple linear regression model
+  const model = tf.sequential();
+  model.add(tf.layers.dense({ units: 1, inputShape: [3] }));
+
+  // Compile the model
+  model.compile({
+    optimizer: 'sgd',
+    loss: 'meanSquaredError'
+  });
+
+  // Example data (features: age, weight, previous visits; target: antenatal visits)
+  const data = {
+    features: [
+      [25, 60, 2],
+      [30, 70, 3],
+      [28, 55, 1],
+      // Add more training examples here
+    ],
+    labels: [4, 5, 3] // Corresponding antenatal visits
+  };
+
+  // Convert data to tensors
+  const featuresTensor = tf.tensor2d(data.features);
+  const labelsTensor = tf.tensor1d(data.labels);
+
+  // Train the model
+  async function trainModel() {
+    await model.fit(featuresTensor, labelsTensor, { epochs: 100 });
+    console.log('Training complete');
+  }
+
+  trainModel();
+
+  // Predict antenatal visits based on user input
+  function predictAntenatalVisits() {
+    const age = parseFloat(document.getElementById('age').value);
+    const weight = parseFloat(document.getElementById('weight').value);
+    const previousVisits = parseFloat(document.getElementById('previousVisits').value);
+
+    const inputTensor = tf.tensor2d([[age, weight, previousVisits]]);
+    const prediction = model.predict(inputTensor);
+
+    const predictedVisits = prediction.dataSync()[0];
+    document.getElementById('prediction').textContent = predictedVisits.toFixed(2);
+  }
+</script>
+</body>
+</html>
